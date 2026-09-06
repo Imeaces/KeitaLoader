@@ -9,15 +9,7 @@ dependencies {
     api("net.lenni0451.classtransform:core:1.15.1")
     implementation("net.lenni0451.classtransform:mixinstranslator:1.15.1")
 
-    compileOnlyApi("org.spongepowered:mixin:0.8.5") {
-        exclude(group = "com.google.guava")
-        exclude(group = "com.google.code.gson")
-        exclude(group = "org.ow2.asm")
-    }
-
-    compileOnlyApi("io.github.llamalad7:mixinextras-fabric:0.5.5") {
-        exclude(group = "org.apache.commons")
-    }
+    compileOnlyApi("net.lenni0451.classtransform:mixinsdummy:1.15.1")
 
     implementation("com.google.code.gson:gson:2.13.1")
 
