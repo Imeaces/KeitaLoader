@@ -31,19 +31,21 @@ public class ModsResourceManager {
         return this.modsResourcePaths.values().stream().flatMap(Collection::stream).collect(Collectors.toSet());
     }
 
-    public void registerMod(Path modsJarFile) {
+    public boolean registerMod(Path modsJarFile) {
         Objects.requireNonNull(modsJarFile, "modsJarFile must not be null");
         Set<String> info;
         try {
             info = fetchTransformModInfo(modsJarFile);
         } catch (IOException e) {
             Logger.warn("unable to read transform mod info of {}", modsJarFile, e);
-            return;
+            return false;
         }
         if (info != null){
             modsResourcePaths.put(modsJarFile, new ArrayList<>(info));
             Logger.info("registered transform mod {} with info {}", modsJarFile, info);
+            return true;
         }
+        return false;
     }
 
     @SneakyThrows
@@ -53,7 +55,9 @@ public class ModsResourceManager {
                 Path modFilePath = it.next();
 
                 if (!modFilePath.toString().endsWith(".jar")) continue;
-                registerMod(modFilePath);
+                if (!registerMod(modFilePath)){
+                    Logger.warn("invalid mod file {}", modFilePath);
+                }
             }
         }
     }
