@@ -8,6 +8,7 @@ import org.imeaces.keitaload.mod.ModsResourceManager;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
@@ -43,11 +44,16 @@ public class KeitaLoader {
         }
     }
 
+    @SneakyThrows
     public void scanTransformMods(boolean searchSystemClasspath){
         if (searchSystemClasspath){
             ModsResourceManager.registerModsInsideSystemClasspath(resourceManager);
         }
-        resourceManager.registerModsUnderDir(Paths.get("mods"));
+        Path modsDir = Paths.get("mods");
+        if (Files.notExists(modsDir)) {
+            Files.createDirectories(modsDir);
+        }
+        resourceManager.registerModsUnderDir(modsDir);
     }
 
     @SneakyThrows
