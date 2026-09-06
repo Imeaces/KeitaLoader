@@ -4,6 +4,7 @@ import lombok.SneakyThrows;
 import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import org.imeaces.keitaload.mod.ModsResourceManager;
+import org.tinylog.Logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -58,13 +59,17 @@ public class KeitaLoader {
 
     @SneakyThrows
     public void launchMain(String entrypoint, String[] args){
+        Logger.info("running {} v{}", KeitaConstants.SPEC_TITLE, KeitaConstants.SPEC_VERSION);
+
         Objects.requireNonNull(KeitaAgent.INSTRUMENTATION, "agent instrumentation missing, did you forget to append KeitaAgent?");
 
+        Logger.info("adding {} mod(s)", resourceManager.getModsJarFiles().size());
         resourceManager.getModsJarFiles().forEach(modsLoader::addJarFile);
         resourceManager.getAllTransformClassNames().forEach(transformerManager::addTransformer);
 
         transformerManager.hookInstrumentation(KeitaAgent.INSTRUMENTATION);
 
+        Logger.info("running entrypoint {}", entrypoint);
         Method entrypointMain = modsLoader.loadClass(entrypoint).getDeclaredMethod("main", String[].class);
         // Java 25 允许 package-private 的 main 方法作为程序入口，需要扩展访问
         entrypointMain.setAccessible(true);

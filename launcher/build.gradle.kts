@@ -31,7 +31,7 @@ tasks.getByName<Jar>("jar") {
             "Launcher-Agent-Class" to "org.imeaces.keitaload.KeitaAgent",
             "Main-Class" to "org.imeaces.keitaload.KeitaLaunchJarWithMain",
 
-            "Specification-Title" to project.name,
+            "Specification-Title" to "KeitaLoader",
             "Specification-Version" to project.version,
             "Specification-Vendor" to "org.imeaces",
 
