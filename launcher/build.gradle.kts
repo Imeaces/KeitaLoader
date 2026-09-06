@@ -7,6 +7,21 @@ plugins {
 
 dependencies {
     api("net.lenni0451.classtransform:core:1.15.1")
+    implementation("net.lenni0451.classtransform:mixinstranslator:1.15.1")
+
+    compileOnlyApi("org.spongepowered:mixin:0.8.5") {
+        exclude(group = "com.google.guava")
+        exclude(group = "com.google.code.gson")
+        exclude(group = "org.ow2.asm")
+    }
+
+    compileOnlyApi("io.github.llamalad7:mixinextras-fabric:0.5.5") {
+        exclude(group = "org.apache.commons")
+    }
+
+    implementation("com.google.code.gson:gson:2.13.1")
+
+    api("org.tinylog:tinylog-api:2.7.0")
     implementation("org.tinylog:tinylog-impl:2.7.0")
 
     compileOnly("org.projectlombok:lombok:1.18.42")
@@ -46,6 +61,8 @@ tasks.getByName<Jar>("jar") {
 
 tasks.getByName<ShadowJar>("shadowJar") {
     mergeServiceFiles()
+
+    relocate("com.google.gson", "org.imeaces.keitaload.shadow.com.google.gson")
 }
 
 tasks.named("assemble") {

@@ -2,6 +2,7 @@ package org.imeaces.keitaload;
 
 import lombok.SneakyThrows;
 import net.lenni0451.classtransform.TransformerManager;
+import net.lenni0451.classtransform.mixinstranslator.MixinsTranslator;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import org.imeaces.keitaload.mod.ModsResourceManager;
 import org.tinylog.Logger;
@@ -23,6 +24,8 @@ public class KeitaLoader {
         this.transformerManager = new TransformerManager(new KeitaTransformModClassProvider(this));
         this.modsLoader = new KeitaModsClassLoader(ClassLoader.getSystemClassLoader());
         this.resourceManager = new ModsResourceManager();
+
+        transformerManager.addTransformerPreprocessor(new MixinsTranslator());
     }
 
     public void addJarFile(Path jarFile) {

@@ -1,7 +1,9 @@
 package org.imeaces.keitaload.mod;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import lombok.SneakyThrows;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 import org.tinylog.Logger;
 
 import java.io.BufferedReader;
@@ -20,6 +22,7 @@ import java.util.stream.Stream;
 
 public class ModsResourceManager {
     public static final String KEITA_TRANSFORMS_CONF_FILE = "META-INF/keita-transforms";
+    public static final String KEITA_MIXIN_CONF_FILE = "keitaload-mod.mixins.json";
 
     private final Map<Path, List<String>> modsResourcePaths = new HashMap<>();
 
@@ -40,7 +43,7 @@ public class ModsResourceManager {
             Logger.warn("unable to read transform mod info of {}", modsJarFile, e);
             return false;
         }
-        if (info != null){
+        if (!info.isEmpty()){
             modsResourcePaths.put(modsJarFile, new ArrayList<>(info));
             Logger.info("registered transform mod {} with info {}", modsJarFile, info);
             return true;
@@ -73,26 +76,52 @@ public class ModsResourceManager {
         }
     }
 
-    public static @Nullable Set<String> fetchTransformModInfo(Path modJarPath) throws IOException {
+    public static @NotNull Set<String> fetchTransformModInfo(Path modJarPath) throws IOException {
         Set<String> transformClassList = new HashSet<>();
 
         try (JarFile jar = new JarFile(modJarPath.toFile())) {
-            JarEntry entry = jar.getJarEntry(KEITA_TRANSFORMS_CONF_FILE);
+            Set<String> mixinConfClassNames = fetchMixinConf(jar);
+            Set<String> transformClassNamed = fetchTransformConf(jar);
 
-            if (entry != null) {
-                try (InputStream in = jar.getInputStream(entry)) {
-                    try (BufferedReader reader = new BufferedReader(
-                            new InputStreamReader(in, StandardCharsets.UTF_8))) {
+            transformClassList.addAll(mixinConfClassNames);
+            transformClassList.addAll(transformClassNamed);
+        }
 
-                        reader.lines()
-                                .map(String::trim)
-                                .filter(line -> !line.isEmpty())
-                                .forEach(transformClassList::add);
-                    }
-                }
+        return transformClassList;
+    }
+
+    public static @NotNull Set<String> fetchMixinConf(JarFile jar) throws IOException {
+        JarEntry mixinConf = jar.getJarEntry(KEITA_MIXIN_CONF_FILE);
+        if (mixinConf == null) return Collections.emptySet();
+
+        Set<String> mixinClassNames;
+        try (InputStream in = jar.getInputStream(mixinConf)) {
+            JsonObject json = JsonParser.parseReader(new InputStreamReader(in, StandardCharsets.UTF_8)).getAsJsonObject();
+
+            String packageName = json.get("package").getAsString();
+            mixinClassNames = json.getAsJsonArray("mixins").asList()
+                    .stream().map(obj -> packageName + "." + obj.getAsString()).collect(Collectors.toSet());
+        }
+
+        return mixinClassNames;
+    }
+
+    public static @NotNull Set<String> fetchTransformConf(JarFile jar) throws IOException {
+        JarEntry transformListConf = jar.getJarEntry(KEITA_TRANSFORMS_CONF_FILE);
+        if  (transformListConf == null) return Collections.emptySet();
+
+        Set<String> transformClassNames = new HashSet<>();
+        try (InputStream in = jar.getInputStream(transformListConf)) {
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(in, StandardCharsets.UTF_8))) {
+
+                reader.lines()
+                        .map(String::trim)
+                        .filter(line -> !line.isEmpty())
+                        .forEach(transformClassNames::add);
             }
         }
 
-        return transformClassList.isEmpty() ? null : transformClassList;
+        return transformClassNames;
     }
 }
