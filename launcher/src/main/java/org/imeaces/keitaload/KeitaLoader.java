@@ -21,7 +21,7 @@ public class KeitaLoader {
 
     public KeitaLoader() {
         this.transformerManager = new TransformerManager(new KeitaTransformModClassProvider(this));
-        this.modsLoader = new KeitaModsClassLoader();
+        this.modsLoader = new KeitaModsClassLoader(ClassLoader.getSystemClassLoader());
         this.resourceManager = new ModsResourceManager();
     }
 
@@ -67,6 +67,7 @@ public class KeitaLoader {
         resourceManager.getModsJarFiles().forEach(modsLoader::addJarFile);
         resourceManager.getAllTransformClassNames().forEach(transformerManager::addTransformer);
 
+        Thread.currentThread().setContextClassLoader(modsLoader);
         transformerManager.hookInstrumentation(KeitaAgent.INSTRUMENTATION);
 
         Logger.info("running entrypoint {}", entrypoint);

@@ -8,8 +8,8 @@ import java.nio.file.Path;
 import java.util.jar.JarFile;
 
 public class KeitaModsClassLoader extends URLClassLoader {
-    public KeitaModsClassLoader() {
-        super(new URL[0]);
+    public KeitaModsClassLoader(ClassLoader parent) {
+        super(new URL[0], parent);
     }
 
     public void addJarFile(Path jarFile) {
