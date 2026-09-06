@@ -74,7 +74,7 @@ public class ModsResourceManager {
     }
 
     public static @Nullable Set<String> fetchTransformModInfo(Path modJarPath) throws IOException {
-        Set<String> transformClassList = new HashSet<String>();
+        Set<String> transformClassList = new HashSet<>();
 
         try (JarFile jar = new JarFile(modJarPath.toFile())) {
             JarEntry entry = jar.getJarEntry(KEITA_TRANSFORMS_CONF_FILE);
