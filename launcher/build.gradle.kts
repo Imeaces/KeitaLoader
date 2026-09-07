@@ -7,18 +7,16 @@ plugins {
 
 dependencies {
     api("net.lenni0451.classtransform:core:1.15.1")
+    compileOnlyApi("net.lenni0451.classtransform:mixinsdummy:1.15.1")
     implementation("net.lenni0451.classtransform:mixinstranslator:1.15.1")
 
-    compileOnlyApi("net.lenni0451.classtransform:mixinsdummy:1.15.1")
+    api("org.tinylog:tinylog-api:2.7.0")
 
     implementation("com.google.code.gson:gson:2.13.1")
-
-    api("org.tinylog:tinylog-api:2.7.0")
     implementation("org.tinylog:tinylog-impl:2.7.0")
 
     compileOnly("org.projectlombok:lombok:1.18.42")
     annotationProcessor("org.projectlombok:lombok:1.18.42")
-
     compileOnly("org.jetbrains:annotations:26.0.2")
 }
 
