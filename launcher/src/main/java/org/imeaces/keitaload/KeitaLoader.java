@@ -5,6 +5,7 @@ import net.lenni0451.classtransform.TransformerManager;
 import net.lenni0451.classtransform.mixinstranslator.MixinsTranslator;
 import net.lenni0451.classtransform.utils.ASMUtils;
 import org.imeaces.keitaload.mod.ModsResourceManager;
+import org.jetbrains.annotations.Nullable;
 import org.tinylog.Logger;
 
 import java.io.ByteArrayOutputStream;
@@ -17,23 +18,39 @@ import java.util.Objects;
 
 public class KeitaLoader {
     private final TransformerManager transformerManager;
-    private final KeitaModsClassLoader modsLoader;
+    private final @Nullable KeitaModsClassLoader modsLoader;
     private final ModsResourceManager resourceManager;
 
-    public KeitaLoader() {
+    public KeitaLoader(boolean standaloneModsClassloader) {
         this.transformerManager = new TransformerManager(new KeitaTransformModClassProvider(this));
-        this.modsLoader = new KeitaModsClassLoader(ClassLoader.getSystemClassLoader());
+        if (standaloneModsClassloader) {
+            this.modsLoader = new KeitaModsClassLoader(ClassLoader.getSystemClassLoader());
+        } else {
+            this.modsLoader = null;
+        }
         this.resourceManager = new ModsResourceManager();
 
         transformerManager.addTransformerPreprocessor(new MixinsTranslator());
     }
 
     public void addJarFile(Path jarFile) {
-        modsLoader.addJarFile(jarFile);
+        if (modsLoader != null) {
+            modsLoader.addJarFile(jarFile);
+        } else {
+            KeitaAgent.addJarToClasspath(jarFile);
+        }
+    }
+
+    public InputStream getResourceAsStream(String resourcePath) {
+        if (modsLoader != null) {
+            return modsLoader.getResourceAsStream(resourcePath);
+        } else {
+            return ClassLoader.getSystemClassLoader().getResourceAsStream(resourcePath);
+        }
     }
 
     public byte[] getClassBytes(String name) throws ClassNotFoundException {
-        try (InputStream in = modsLoader.getResourceAsStream(ASMUtils.slash(name) + ".class")) {
+        try (InputStream in = getResourceAsStream(ASMUtils.slash(name) + ".class")) {
             if (in == null) throw new ClassNotFoundException(name);
 
             ByteArrayOutputStream classBytes = new ByteArrayOutputStream();
@@ -67,14 +84,22 @@ public class KeitaLoader {
         Objects.requireNonNull(KeitaAgent.INSTRUMENTATION, "agent instrumentation missing, did you forget to append KeitaAgent?");
 
         Logger.info("adding {} mod(s)", resourceManager.getModsJarFiles().size());
-        resourceManager.getModsJarFiles().forEach(modsLoader::addJarFile);
+        if (modsLoader != null) {
+            resourceManager.getModsJarFiles().forEach(modsLoader::addJarFile);
+        } else {
+            resourceManager.getModsJarFiles().forEach(KeitaAgent::addJarToClasspath);
+        }
         resourceManager.getAllTransformClassNames().forEach(transformerManager::addTransformer);
 
-        Thread.currentThread().setContextClassLoader(modsLoader);
+        if (modsLoader != null) {
+            Thread.currentThread().setContextClassLoader(modsLoader);
+        }
         transformerManager.hookInstrumentation(KeitaAgent.INSTRUMENTATION);
 
         Logger.info("running entrypoint {}", entrypoint);
-        Method entrypointMain = modsLoader.loadClass(entrypoint).getDeclaredMethod("main", String[].class);
+        Method entrypointMain = Thread.currentThread().getContextClassLoader()
+                .loadClass(entrypoint).getDeclaredMethod("main", String[].class);
+
         // Java 25 允许 package-private 的 main 方法作为程序入口，需要扩展访问
         entrypointMain.setAccessible(true);
         entrypointMain.invoke(null, (Object) args);

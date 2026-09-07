@@ -14,7 +14,7 @@ public class KeitaTransformModClassProvider implements IClassProvider {
     }
 
     @Override
-    public byte @NotNull [] getClass(String name) throws ClassNotFoundException {
+    public byte @NotNull [] getClass(@NotNull String name) throws ClassNotFoundException {
         return keitaLoader.getClassBytes(name);
     }
 

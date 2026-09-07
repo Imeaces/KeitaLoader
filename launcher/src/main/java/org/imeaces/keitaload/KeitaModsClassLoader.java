@@ -12,6 +12,7 @@ public class KeitaModsClassLoader extends URLClassLoader {
         super(new URL[0], parent);
     }
 
+    @SneakyThrows
     public void addJarFile(Path jarFile) {
         super.addURL(returnUrlOfJar(jarFile));
     }

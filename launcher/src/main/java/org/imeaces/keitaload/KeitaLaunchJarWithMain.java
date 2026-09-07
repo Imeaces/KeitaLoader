@@ -1,6 +1,7 @@
 package org.imeaces.keitaload;
 
 import lombok.SneakyThrows;
+import org.tinylog.Logger;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -28,9 +29,13 @@ public class KeitaLaunchJarWithMain {
                     .getValue("Main-Class");
         }
 
-        KeitaLoader keitaLoader = new KeitaLoader();
+        if (KeitaConfigurations.LOAD_CLASSPATH_MODS && KeitaConfigurations.STANDALONE_MODS_CLASSLOADER) {
+            Logger.warn("Warning! Using load-classpath-mods with standalone-mods-classloader together may cause unforeseen consequences!");
+        }
+
+        KeitaLoader keitaLoader = new KeitaLoader(KeitaConfigurations.STANDALONE_MODS_CLASSLOADER);
         keitaLoader.addJarFile(programJarFile);
-        keitaLoader.scanTransformMods(true);
+        keitaLoader.scanTransformMods(KeitaConfigurations.LOAD_CLASSPATH_MODS);
         keitaLoader.launchMain(jarMainClass, programArgs);
     }
 }
